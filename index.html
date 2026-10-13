@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TBB Kitchen</title>
+<meta name="theme-color" content="#1f7a4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TBB Kitchen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root { --bg: #f6f5f2; --card: #fff; --ink: #1d1d1b; --muted: #6b6a65; --line: #e2e0d9; --accent: #1f7a4d; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141413; --card: #1f1f1d; --ink: #ecebe6; --muted: #9c9a93; --line: #34332f; --accent: #4cc38a; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+               font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+  [hidden] { display: none !important; }
+  #bar { position: fixed; left: 0; right: 0; top: 0; z-index: 2; height: calc(34px + env(safe-area-inset-top));
+         padding: env(safe-area-inset-top) 12px 0; display: flex; align-items: center; gap: 8px;
+         background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; }
+  #bar img { width: 22px; height: 22px; border-radius: 6px; }
+  #bar .sp { flex: 1; }
+  #bar button { border: 1px solid rgba(255,255,255,.5); background: none; color: #fff; border-radius: 999px;
+                padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  #clip { position: fixed; left: 0; right: 0; bottom: 0; top: calc(34px + env(safe-area-inset-top)); overflow: hidden; }
+  /* Google's "created by a Google Apps Script user" bar is not shown when the app is embedded like this. */
+  #app { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); }
+  #pick { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { width: 100%; max-width: 360px; text-align: center; }
+  .card img { width: 88px; height: 88px; border-radius: 22px; }
+  .card h1 { margin: 12px 0 2px; font-size: 22px; }
+  .card p { margin: 0 0 18px; color: var(--muted); }
+  .card button { display: block; width: 100%; margin: 0 0 10px; padding: 14px; border-radius: 12px;
+                 border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit;
+                 font-size: 17px; font-weight: 600; cursor: pointer; }
+  .card button:hover { border-color: var(--accent); }
+  #msg { position: fixed; left: 0; right: 0; top: 50%; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="pick" hidden>
+  <div class="card">
+    <img src="icon-192.png" alt="">
+    <h1>TBB Kitchen</h1>
+    <p>Which outlet do you work at?</p>
+    <div id="outlets"></div>
+  </div>
+</div>
+<div id="bar" hidden>
+  <img src="icon-192.png" alt="">
+  <span id="name"></span>
+  <span class="sp"></span>
+  <button type="button" id="switch">Switch outlet</button>
+</div>
+<div id="clip" hidden><div id="msg">Loading…</div><iframe id="app" title="TBB Kitchen" allow="camera; clipboard-write"></iframe></div>
+<script>
+  // Each outlet's web app (Apps Script deployments; links never change when the app is updated).
+  var OUTLETS = [
+    { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbxc7ES4iyT7kMVVHPFa-agBV1MHdMn1Z6QPuVhqifRGSIN8iOPM1UNFNREttrYDmHgM/exec' },
+    { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxLsbo5Rpv4OZt6uqrWyr-DGeoQMmgcITvSa1dcvnPtno900ZoK2nVyXq2bEJ9bL_dPEg/exec' },
+    { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbxi1Nu_u8WY4VsDB5fu4wQBWQWZOoiJR6geQyGLXBiagyOGqzCXaWxnk2TwmUUDdtRAAg/exec' }
+  ];
+  function $(id) { return document.getElementById(id); }
+  function get() { try { return localStorage.getItem('tbb_outlet'); } catch (e) { return null; } }
+  function set(v) { try { if (v) localStorage.setItem('tbb_outlet', v); else localStorage.removeItem('tbb_outlet'); } catch (e) {} }
+
+  function showPicker() {
+    $('pick').hidden = false;
+    $('bar').hidden = true;
+    $('clip').hidden = true;
+    var box = $('outlets');
+    box.innerHTML = '';
+    OUTLETS.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = o.name;
+      b.onclick = function () { set(o.name); open(o); };
+      box.appendChild(b);
+    });
+  }
+
+  function open(o) {
+    $('pick').hidden = true;
+    $('bar').hidden = false;
+    $('clip').hidden = false;
+    $('name').textContent = o.name;
+    document.title = 'TBB Kitchen - ' + o.name;
+    if (!navigator.onLine) { $('msg').textContent = 'No internet connection. Connect and reopen the app.'; }
+    var f = $('app');
+    if (f.getAttribute('data-url') !== o.url) {
+      f.setAttribute('data-url', o.url);
+      f.src = o.url;
+    }
+  }
+
+  $('switch').onclick = function () { set(null); $('app').removeAttribute('data-url'); $('app').src = 'about:blank'; showPicker(); };
+  window.addEventListener('online', function () { $('msg').textContent = 'Loading…'; var f = $('app'); if (f.src) f.src = f.src; });
+
+  var saved = get(), hit = OUTLETS.filter(function (o) { return o.name === saved; })[0];
+  if (hit) open(hit); else showPicker();
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+</script>
+</body>
+</html>

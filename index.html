@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TBB Kitchen</title>
+<title>TBB Stock Take</title>
 <meta name="theme-color" content="#1f7a4d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TBB Kitchen">
+<meta name="apple-mobile-web-app-title" content="TBB Stock Take">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -40,6 +40,8 @@
                  border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit;
                  font-size: 17px; font-weight: 600; cursor: pointer; }
   .card button:hover { border-color: var(--accent); }
+  .card button small { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--muted); }
+  .card button.back { border: 0; background: none; color: var(--muted); font-size: 15px; font-weight: 400; padding: 8px; }
   #msg { position: fixed; left: 0; right: 0; top: 50%; text-align: center; color: var(--muted); }
 </style>
 </head>
@@ -47,8 +49,8 @@
 <div id="pick" hidden>
   <div class="card">
     <img src="icon-192.png" alt="">
-    <h1>TBB Kitchen</h1>
-    <p>Which outlet do you work at?</p>
+    <h1>TBB Stock Take</h1>
+    <p id="ask">Which section do you work in?</p>
     <div id="outlets"></div>
   </div>
 </div>
@@ -56,41 +58,81 @@
   <img src="icon-192.png" alt="">
   <span id="name"></span>
   <span class="sp"></span>
-  <button type="button" id="switch">Switch outlet</button>
+  <button type="button" id="switch">Switch</button>
 </div>
-<div id="clip" hidden><div id="msg">Loading…</div><iframe id="app" title="TBB Kitchen" allow="camera; clipboard-write"></iframe></div>
+<div id="clip" hidden><div id="msg">Loading…</div><iframe id="app" title="TBB Stock Take" allow="camera; clipboard-write"></iframe></div>
 <script>
-  // Each outlet's web app (Apps Script deployments; links never change when the app is updated).
-  var OUTLETS = [
-    { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbxc7ES4iyT7kMVVHPFa-agBV1MHdMn1Z6QPuVhqifRGSIN8iOPM1UNFNREttrYDmHgM/exec' },
-    { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxLsbo5Rpv4OZt6uqrWyr-DGeoQMmgcITvSa1dcvnPtno900ZoK2nVyXq2bEJ9bL_dPEg/exec' },
-    { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbxi1Nu_u8WY4VsDB5fu4wQBWQWZOoiJR6geQyGLXBiagyOGqzCXaWxnk2TwmUUDdtRAAg/exec' }
+  // Each section's web apps (Apps Script deployments; links never change when an app is updated).
+  // Kitchen: ..\Kitchen Stock Take. FOH + Bakery: ..\FOH and Bakery Stock Take.
+  var SECTIONS = [
+    { name: 'Kitchen', outlets: [
+      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbxc7ES4iyT7kMVVHPFa-agBV1MHdMn1Z6QPuVhqifRGSIN8iOPM1UNFNREttrYDmHgM/exec' },
+      { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxLsbo5Rpv4OZt6uqrWyr-DGeoQMmgcITvSa1dcvnPtno900ZoK2nVyXq2bEJ9bL_dPEg/exec' },
+      { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbxi1Nu_u8WY4VsDB5fu4wQBWQWZOoiJR6geQyGLXBiagyOGqzCXaWxnk2TwmUUDdtRAAg/exec' }
+    ] },
+    { name: 'FOH', outlets: [
+      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbwmf7pSB92ZVWfgL3nHcw48aYlY1E6zTqxh-_VrkOdlYBA6EJiHrLQxb7mmjXTNwr05bw/exec' },
+      { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxCLgafcuHbTEozxlV5sqwu9auMz3HTrchcP8puCtgcF1fK63Q7eCJ_scc9H0cdzTMERg/exec' },
+      { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbzmlGB0Hl_t7yTKrH7aEeSbbrcPsIYv0oWZUl_cDX5g0-sXHD3jlFvdxDOj6sVfqs06IQ/exec' }
+    ] },
+    { name: 'Bakery', outlets: [
+      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbw7Q3FE1bK60fcnM7-sZ6mNku3BGF-nPphjSgI_SueRzPfQqym4OWu3Cr97uwQpCTE_bw/exec' }
+    ] }
   ];
   function $(id) { return document.getElementById(id); }
+  // Saved choice is "Section|Outlet". Phones set up before FOH/Bakery existed saved just the outlet: that was Kitchen.
   function get() { try { return localStorage.getItem('tbb_outlet'); } catch (e) { return null; } }
   function set(v) { try { if (v) localStorage.setItem('tbb_outlet', v); else localStorage.removeItem('tbb_outlet'); } catch (e) {} }
+  function find(saved) {
+    if (!saved) return null;
+    var p = saved.indexOf('|') < 0 ? ['Kitchen', saved] : saved.split('|');
+    var s = SECTIONS.filter(function (x) { return x.name === p[0]; })[0];
+    var o = s && s.outlets.filter(function (x) { return x.name === p[1]; })[0];
+    return o ? { section: s.name, name: o.name, url: o.url } : null;
+  }
+
+  function button(label, sub, onclick, cls) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    if (sub) { var s = document.createElement('small'); s.textContent = sub; b.appendChild(s); }
+    if (cls) b.className = cls;
+    b.onclick = onclick;
+    $('outlets').appendChild(b);
+  }
 
   function showPicker() {
     $('pick').hidden = false;
     $('bar').hidden = true;
     $('clip').hidden = true;
-    var box = $('outlets');
-    box.innerHTML = '';
-    OUTLETS.forEach(function (o) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = o.name;
-      b.onclick = function () { set(o.name); open(o); };
-      box.appendChild(b);
+    $('ask').textContent = 'Which section do you work in?';
+    $('outlets').innerHTML = '';
+    SECTIONS.forEach(function (s) {
+      var names = s.outlets.map(function (o) { return o.name; }).join(', ');
+      button(s.name, names, function () {
+        if (s.outlets.length === 1) choose(s, s.outlets[0]); else showOutlets(s);
+      });
     });
+  }
+
+  function showOutlets(s) {
+    $('ask').textContent = s.name + ': which outlet?';
+    $('outlets').innerHTML = '';
+    s.outlets.forEach(function (o) { button(o.name, '', function () { choose(s, o); }); });
+    button('‹ Back', '', showPicker, 'back');
+  }
+
+  function choose(s, o) {
+    set(s.name + '|' + o.name);
+    open({ section: s.name, name: o.name, url: o.url });
   }
 
   function open(o) {
     $('pick').hidden = true;
     $('bar').hidden = false;
     $('clip').hidden = false;
-    $('name').textContent = o.name;
-    document.title = 'TBB Kitchen - ' + o.name;
+    $('name').textContent = o.section + ' · ' + o.name;
+    document.title = 'TBB ' + o.section + ' - ' + o.name;
     if (!navigator.onLine) { $('msg').textContent = 'No internet connection. Connect and reopen the app.'; }
     var f = $('app');
     if (f.getAttribute('data-url') !== o.url) {
@@ -102,7 +144,7 @@
   $('switch').onclick = function () { set(null); $('app').removeAttribute('data-url'); $('app').src = 'about:blank'; showPicker(); };
   window.addEventListener('online', function () { $('msg').textContent = 'Loading…'; var f = $('app'); if (f.src) f.src = f.src; });
 
-  var saved = get(), hit = OUTLETS.filter(function (o) { return o.name === saved; })[0];
+  var hit = find(get());
   if (hit) open(hit); else showPicker();
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});

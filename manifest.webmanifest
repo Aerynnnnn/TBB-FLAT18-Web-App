@@ -1,7 +1,7 @@
 {
-  "name": "TBB Kitchen",
-  "short_name": "TBB Kitchen",
-  "description": "Stock take, recipes, invoices, schedule, equipment and maintenance for TBB TTDI, TBB Publika and FLAT18.",
+  "name": "TBB Stock Take",
+  "short_name": "TBB Stock",
+  "description": "Stock take, recipes, invoices, schedule, equipment and maintenance for the TBB TTDI, TBB Publika and FLAT18 kitchens, FOH and the TTDI bakery.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

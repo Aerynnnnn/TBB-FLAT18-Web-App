@@ -1,6 +1,6 @@
 // Keeps the app shell (this page, manifest, icons) available so the installed app opens instantly.
-// The kitchen app itself always loads live from Google, so updates need no reinstall.
-var CACHE = 'tbb-kitchen-v1';
+// The apps themselves always load live from Google, so updates need no reinstall.
+var CACHE = 'tbb-kitchen-v2'; // v2: Kitchen / FOH / Bakery picker
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
              'apple-touch-icon.png'];
 

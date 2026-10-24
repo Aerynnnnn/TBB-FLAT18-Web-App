@@ -64,21 +64,8 @@
 <script>
   // Each section's web apps (Apps Script deployments; links never change when an app is updated).
   // Kitchen: ..\Kitchen Stock Take. FOH + Bakery: ..\FOH and Bakery Stock Take.
-  var SECTIONS = [
-    { name: 'Kitchen', outlets: [
-      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbxc7ES4iyT7kMVVHPFa-agBV1MHdMn1Z6QPuVhqifRGSIN8iOPM1UNFNREttrYDmHgM/exec' },
-      { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxLsbo5Rpv4OZt6uqrWyr-DGeoQMmgcITvSa1dcvnPtno900ZoK2nVyXq2bEJ9bL_dPEg/exec' },
-      { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbxi1Nu_u8WY4VsDB5fu4wQBWQWZOoiJR6geQyGLXBiagyOGqzCXaWxnk2TwmUUDdtRAAg/exec' }
-    ] },
-    { name: 'FOH', outlets: [
-      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbwmf7pSB92ZVWfgL3nHcw48aYlY1E6zTqxh-_VrkOdlYBA6EJiHrLQxb7mmjXTNwr05bw/exec' },
-      { name: 'TBB Publika', url: 'https://script.google.com/macros/s/AKfycbxCLgafcuHbTEozxlV5sqwu9auMz3HTrchcP8puCtgcF1fK63Q7eCJ_scc9H0cdzTMERg/exec' },
-      { name: 'FLAT18', url: 'https://script.google.com/macros/s/AKfycbzmlGB0Hl_t7yTKrH7aEeSbbrcPsIYv0oWZUl_cDX5g0-sXHD3jlFvdxDOj6sVfqs06IQ/exec' }
-    ] },
-    { name: 'Bakery', outlets: [
-      { name: 'TBB TTDI', url: 'https://script.google.com/macros/s/AKfycbw7Q3FE1bK60fcnM7-sZ6mNku3BGF-nPphjSgI_SueRzPfQqym4OWu3Cr97uwQpCTE_bw/exec' }
-    ] }
-  ];
+  // The list lives in content/sections.json so it can be edited from the admin page (/admin/).
+  var SECTIONS = [];
   function $(id) { return document.getElementById(id); }
   // Saved choice is "Section|Outlet". Phones set up before FOH/Bakery existed saved just the outlet: that was Kitchen.
   function get() { try { return localStorage.getItem('tbb_outlet'); } catch (e) { return null; } }
@@ -144,8 +131,18 @@
   $('switch').onclick = function () { set(null); $('app').removeAttribute('data-url'); $('app').src = 'about:blank'; showPicker(); };
   window.addEventListener('online', function () { $('msg').textContent = 'Loading…'; var f = $('app'); if (f.src) f.src = f.src; });
 
-  var hit = find(get());
-  if (hit) open(hit); else showPicker();
+  function start() {
+    var hit = find(get());
+    if (hit) open(hit); else showPicker();
+  }
+
+  fetch('content/sections.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) { SECTIONS = d.sections || []; start(); })
+    .catch(function () {
+      $('pick').hidden = false;
+      $('ask').textContent = 'Couldn\u2019t load the outlet list. Check your internet connection and reopen the app.';
+    });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
 </script>

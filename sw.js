@@ -1,8 +1,8 @@
 // Keeps the app shell (this page, manifest, icons) available so the installed app opens instantly.
 // The apps themselves always load live from Google, so updates need no reinstall.
-var CACHE = 'tbb-kitchen-v2'; // v2: Kitchen / FOH / Bakery picker
+var CACHE = 'tbb-kitchen-v3'; // v3: outlet list moved to content/sections.json
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
-             'apple-touch-icon.png'];
+             'apple-touch-icon.png', 'content/sections.json'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
@@ -18,6 +18,7 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.indexOf('/admin/') >= 0) return; // the admin page always loads live
   e.respondWith(fetch(e.request).then(function (res) {
     var copy = res.clone();
     caches.open(CACHE).then(function (c) { c.put(e.request, copy); });

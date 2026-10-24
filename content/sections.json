@@ -1,0 +1,26 @@
+{
+  "sections": [
+    {
+      "name": "Kitchen",
+      "outlets": [
+        { "name": "TBB TTDI", "url": "https://script.google.com/macros/s/AKfycbxc7ES4iyT7kMVVHPFa-agBV1MHdMn1Z6QPuVhqifRGSIN8iOPM1UNFNREttrYDmHgM/exec" },
+        { "name": "TBB Publika", "url": "https://script.google.com/macros/s/AKfycbxLsbo5Rpv4OZt6uqrWyr-DGeoQMmgcITvSa1dcvnPtno900ZoK2nVyXq2bEJ9bL_dPEg/exec" },
+        { "name": "FLAT18", "url": "https://script.google.com/macros/s/AKfycbxi1Nu_u8WY4VsDB5fu4wQBWQWZOoiJR6geQyGLXBiagyOGqzCXaWxnk2TwmUUDdtRAAg/exec" }
+      ]
+    },
+    {
+      "name": "FOH",
+      "outlets": [
+        { "name": "TBB TTDI", "url": "https://script.google.com/macros/s/AKfycbwmf7pSB92ZVWfgL3nHcw48aYlY1E6zTqxh-_VrkOdlYBA6EJiHrLQxb7mmjXTNwr05bw/exec" },
+        { "name": "TBB Publika", "url": "https://script.google.com/macros/s/AKfycbxCLgafcuHbTEozxlV5sqwu9auMz3HTrchcP8puCtgcF1fK63Q7eCJ_scc9H0cdzTMERg/exec" },
+        { "name": "FLAT18", "url": "https://script.google.com/macros/s/AKfycbzmlGB0Hl_t7yTKrH7aEeSbbrcPsIYv0oWZUl_cDX5g0-sXHD3jlFvdxDOj6sVfqs06IQ/exec" }
+      ]
+    },
+    {
+      "name": "Bakery",
+      "outlets": [
+        { "name": "TBB TTDI", "url": "https://script.google.com/macros/s/AKfycbw7Q3FE1bK60fcnM7-sZ6mNku3BGF-nPphjSgI_SueRzPfQqym4OWu3Cr97uwQpCTE_bw/exec" }
+      ]
+    }
+  ]
+}

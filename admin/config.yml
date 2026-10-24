@@ -1,0 +1,53 @@
+# Decap CMS settings for the TBB Stock Take admin page (/admin/).
+# Saving in the admin commits straight to main; GitHub Pages republishes the site in a minute or two.
+backend:
+  name: github
+  repo: aerynnnnn/TBB-FLAT18-Web-App
+  branch: main
+  # GitHub login goes through Netlify's free OAuth service. See "Editing the outlet list" in README.md.
+  base_url: https://api.netlify.com
+  commit_messages:
+    update: "Update outlet list (via admin)"
+
+site_url: https://aerynnnnn.github.io/TBB-FLAT18-Web-App/
+display_url: https://aerynnnnn.github.io/TBB-FLAT18-Web-App/
+logo_url: https://aerynnnnn.github.io/TBB-FLAT18-Web-App/icon-192.png
+
+# Required by Decap even though nothing here uploads images.
+media_folder: uploads
+public_folder: /TBB-FLAT18-Web-App/uploads
+
+collections:
+  - name: settings
+    label: Settings
+    editor:
+      preview: false
+    files:
+      - name: sections
+        label: Sections and outlets
+        file: content/sections.json
+        format: json
+        description: >-
+          The sections and outlets staff pick from when they open the app. Each outlet opens its own
+          Apps Script web app. Paste the deployment's web app link (it ends in /exec).
+        fields:
+          - name: sections
+            label: Sections
+            label_singular: Section
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { name: name, label: Section name, widget: string, hint: "For example Kitchen, FOH or Bakery" }
+              - name: outlets
+                label: Outlets
+                label_singular: Outlet
+                widget: list
+                summary: "{{fields.name}}"
+                min: 1
+                fields:
+                  - { name: name, label: Outlet name, widget: string, hint: "For example TBB TTDI" }
+                  - name: url
+                    label: Web app link
+                    widget: string
+                    hint: "From Apps Script: Deploy > Manage deployments > Web app URL"
+                    pattern: ['^https://script\.google\.com/macros/s/[^/]+/exec$', "Paste the Apps Script web app link. It starts with https://script.google.com/macros/s/ and ends in /exec"]
